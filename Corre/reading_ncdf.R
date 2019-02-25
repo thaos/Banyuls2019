@@ -66,7 +66,21 @@ domains <- c(
   "-180,180,-90,90"
 )
 
+dom1 <- as.numeric(unlist(strsplit(domains[1], ",")))
+lon_poly <- dom1[c(1, 2, 2, 1)]
+lat_poly <- dom1[c(3, 3, 4, 4)]
+polygon(lon_poly, lat_poly)
 
+polylist <- lapply(domains, function(dom){
+  coord <- as.numeric(unlist(strsplit(dom[1], ",")))
+  Polygons(list(Polygon(cbind(lon = coord[c(1, 2, 2, 1)], lat = coord[c(3, 3, 4, 4)]))), dom)
+})
+sppolylist <- SpatialPolygons(polylist)
+
+sppolylist<- list("sp.lines", col = "red", lwd = 2, sppolylist)
+spplot(t.lonlat, scales=list(draw=TRUE), sp.layout=list(l1, sppolylist),
+       col.regions = rainbow(11), cuts = 10,
+       main="Mean Max Surface Temp 1991-2000, lon/lat projection")
 
 get_files <- function(var, gcm, rcm, domain){
   list.files(
@@ -80,7 +94,7 @@ nc <- nc_open(ncfile)
 ncvar_get(nc, "time")
 
 read_nc1d <- function(ncfile, varid){
-  source("https://raw.githubusercontent.com/arakelian-ara/Rstat/master/time_handler.R")
+  #source("https://raw.githubusercontent.com/arakelian-ara/Rstat/master/time_handler.R")
   nc <- nc_open(ncfile)
   var <- ncvar_get(nc, varid)
   nc_close(nc)
@@ -101,7 +115,7 @@ plot(tas_df$year, tas_df$tas)
 
 
 plot_files <- function(var, gcm, rcm, domain){
-  files <- get_files(var, gcm, rcm, domain)
+  files <- mapply(get_files, var = var, gcm = gcm, rcm = rcm, domain = domain)
   list_df <- lapply(files, read_nc1d, varid = var)
   ylim  <- do.call(range, lapply(list_df, function(x) x[,var]))
   xlim  <- do.call(range, lapply(list_df, function(x) x[, "year"]))
@@ -110,7 +124,7 @@ plot_files <- function(var, gcm, rcm, domain){
     if(i == 1){
       plot(
         list_df[[i]], xlim = xlim, ylim = ylim, col = pal[i],
-        type = "l", main = domain 
+        type = "l", main = paste("var:", var, ", domain:", domain)
       )
       merged <- list_df[[i]]
     } else{
@@ -124,7 +138,12 @@ plot_files <- function(var, gcm, rcm, domain){
     apply(as.matrix(merged[, -1]), 1, mean, na.rm = TRUE),
     lwd = 2
   )
+  legend("topleft", legend = c(paste(gcm, rcm, sep = "/"), "mean"),
+         col = c(pal, "black"), lty = 1)
 }
-
 plot_files("tas", ".*", ".*", domains[1])
 
+params <- cbind(var = "tas", list_rcms, domain = "23.625,27.375,61.625,63.375")
+params <- lapply(params, as.character)
+with(params, plot_files(var[1], gcms, rcms, domain[1]))
+     
