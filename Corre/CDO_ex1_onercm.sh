@@ -13,16 +13,15 @@ for f in $ncfiles; do
   ncout="tmp/$basename"
   echo ncout: $ncout
   cdo sellonlatbox,${domain} ${f} tmp/tmp0.nc
-  cdo fldmean tmp/tmp0.nc tmp/tmp1.nc
+  cdo fldmean tmp/tmp0.nc $ncout
   # ${ncout##*/} to get basename
   # cdo setreftime,0000-01-01,00:00 tmp/tmp1.nc tmp/tmp2.nc
-  cdo yearmean tmp/tmp1.nc $ncout
   outlist="$outlist $ncout"
 done
 
 rm -f tmp/merged.nc
 cdo mergetime $outlist tmp/merged.nc
-cdo seldate,1970-01-01,2100-12-31 tmp/merged.nc ${var}_EUR-11_${gcm}_r1i1p1_${rcm}_dom_${domain}.nc
+cdo seldate,1970-01-01,2100-12-31 -yearmean tmp/merged.nc ${var}_EUR-11_${gcm}_r1i1p1_${rcm}_dom_${domain}.nc
 
 # for precipitation replace yearmean by yearsum
 var="pr"
@@ -38,13 +37,12 @@ for f in $ncfiles; do
   ncout="tmp/$basename"
   echo ncout: $ncout
   cdo sellonlatbox,${domain} ${f} tmp/tmp0.nc
-  cdo fldmean tmp/tmp0.nc tmp/tmp1.nc
+  cdo fldmean tmp/tmp0.nc $ncout
   # ${ncout##*/} to get basename
   # cdo setreftime,0000-01-01,00:00 tmp/tmp1.nc tmp/tmp2.nc
-  cdo yearmean tmp/tmp1.nc $ncout
   outlist="$outlist $ncout"
 done
 
 rm -f tmp/merged.nc
 cdo mergetime $outlist tmp/merged.nc 
-cdo seldate,1970-01-01,2100-12-31 tmp/merged.nc ${var}_EUR-11_${gcm}_r1i1p1_${rcm}_dom_${domain}.nc
+cdo seldate,1970-01-01,2100-12-31 -yearsum tmp/merged.nc ${var}_EUR-11_${gcm}_r1i1p1_${rcm}_dom_${domain}.nc

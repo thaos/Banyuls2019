@@ -7,43 +7,10 @@ library(ncdf4)
 library(maptools)
 
 data(wrld_simpl) # loads the world map dataset
-as(wrld_simpl,"SpatialLines") -> wrl
+wrl <- as(wrld_simpl,"SpatialLines")
 
-# check ncdf meta-data in R
-nc <- nc_open("merged.nc")
-names(nc$dim)
-names(nc$var)
 
-lat <- ncvar_get(nc, "lat")
-lon <- ncvar_get(nc, "lon")
-
-plot(lon, lat, asp=1, cex=.4, col="grey",
-     pch="+", main=("KNMI-RACMO2 lon-lat grid"))
-lines(wrl)
-
-rlat <- ncvar_get(nc, "rlat")
-rlon <- ncvar_get(nc, "rlon") 
-rot.coords <- expand.grid(rlon,rlat)
-
-tas <- ncvar_get(nc, varid = "tas") 
-str(tas) # a 3-d array (lon,lat,time)
-# applies function mean to margins 1 and 2 of the array
-tas_mean <- apply(tas, MARGIN = c(1,2), FUN = mean)
-
-l1 <- list("sp.lines",wrl)
-t.lonlat <- data.frame(as.vector(lon), as.vector(lat), as.vector(tas_mean))
-coordinates(t.lonlat) <- c(1,2)
-
-spplot(t.lonlat, scales=list(draw=TRUE), sp.layout=list(l1),
-       col.regions = rainbow(11), cuts = 10,
-       main="Mean Max Surface Temp 1991-2000, lon/lat projection")
-
-library(rgdal)
-str(projInfo("proj"))
-str(projInfo("ellps"))
-str(projInfo("datum"))
-
-rot_attr <- ncatt_get(nc, "rotated_pole")
+# Exercice data -----------------------------------------------------------
 
 list_rcms <- data.frame(
   gcms = c("MOHC-HadGEM2-ES", "MOHC-HadGEM2-ES", "MPI-M-MPI-ESM-LR"),
@@ -66,33 +33,80 @@ domains <- c(
   "-180,180,-90,90"
 )
 
-dom1 <- as.numeric(unlist(strsplit(domains[1], ",")))
-lon_poly <- dom1[c(1, 2, 2, 1)]
-lat_poly <- dom1[c(3, 3, 4, 4)]
-polygon(lon_poly, lat_poly)
+domain_names <- c(
+  "Finland", "Norway", "Belarus", "England",
+  "Germany", "France", "Italy", "Romania",
+  "Greece", "Galicia", "Andalucia", "Tunisia"
+)
 
+
+# Reading NetCDF ---------------------------------------------------------
+
+# check ncdf meta-data in R
+nc <- nc_open("merged.nc")
+names(nc$dim)
+names(nc$var)
+
+lat <- ncvar_get(nc, "lat")
+lon <- ncvar_get(nc, "lon")
+
+# Check spatial sampling
+plot(lon, lat, asp=1, cex=.4, col="grey",
+     pch="+", main=("MOHC-HadGEM2-ES-SMHI-RCA4 lon-lat grid"))
+lines(wrl)
+
+rlat <- ncvar_get(nc, "rlat")
+rlon <- ncvar_get(nc, "rlon") 
+rot.coords <- expand.grid(rlon,rlat)
+
+tas <- ncvar_get(nc, varid = "tas") 
+str(tas) # a 3-d array (lon,lat,time)
+
+nc_close(nc)
+
+
+# Plot mean surface temp and regions of interest --------------------------
+
+# applies function mean to margins 1 and 2 of the array
+tas_mean <- apply(tas, MARGIN = c(1,2), FUN = mean)
+
+l1 <- list("sp.lines",wrl)
+t.lonlat <- data.frame(as.vector(lon), as.vector(lat), as.vector(tas_mean))
+coordinates(t.lonlat) <- c(1,2)
+
+spplot(t.lonlat, scales=list(draw=TRUE), sp.layout=list(l1),
+       col.regions = rainbow(11), cuts = 10,
+       main="Mean Surface Temp 1970-2099, lon/lat projection")
+
+
+# Define region boxes to plots
 polylist <- lapply(domains, function(dom){
   coord <- as.numeric(unlist(strsplit(dom[1], ",")))
   Polygons(list(Polygon(cbind(lon = coord[c(1, 2, 2, 1)], lat = coord[c(3, 3, 4, 4)]))), dom)
 })
-sppolylist <- SpatialPolygons(polylist)
+polylist <- SpatialPolygons(polylist)
 
-sppolylist<- list("sp.lines", col = "red", lwd = 2, sppolylist)
+sppolylist <- list("sp.lines", col = "red", lwd = 2, polylist)
 spplot(t.lonlat, scales=list(draw=TRUE), sp.layout=list(l1, sppolylist),
        col.regions = rainbow(11), cuts = 10,
        main="Mean Max Surface Temp 1991-2000, lon/lat projection")
 
+# Plot time-series of each region ---------------------------------------
+
+# Function to retrirve the netcdf file for one variable ,one gcm, one rcm and one domain
 get_files <- function(var, gcm, rcm, domain){
   list.files(
     path = "./", 
-    pattern = paste( var, gcm, rcm, domain, "\\.nc", sep=".*" )
+    pattern = paste( var, gcm, rcm, domain, "\\.nc", sep = ".*" )
   )
 }
 
+# Example
 ncfile <- get_files("tas", "MOHC-HadGEM2-ES", "RACMO22E", "23.625,27.375,61.625,63.375")
-nc <- nc_open(ncfile)
-ncvar_get(nc, "time")
 
+
+# Function to read the varid variable from a netcdf file.
+# Output is a data.frame with one column for the year and one column for the averaged variable over the regions
 read_nc1d <- function(ncfile, varid){
   #source("https://raw.githubusercontent.com/arakelian-ara/Rstat/master/time_handler.R")
   nc <- nc_open(ncfile)
@@ -107,13 +121,18 @@ read_nc1d <- function(ncfile, varid){
   return(df)
 }
 
+# exeample of readind the tas variable
 tas_df <- read_nc1d(ncfile, "tas")
-plot(tas_df$year, tas_df$tas)
+plot(
+  tas_df$year, tas_df$tas, type = "l",
+  ylab = "tas(K)", xlab = "year", 
+  main = "average tas for MOHC-HadGEM2-ES / RACMO22E \n
+  and domain Finland (23.625,27.375,61.625,63.375)"
+)
 
-# faire plot de la carte avec les region selectionnes
-# faire les series temporelles pour chaque sous regions
 
-
+# For one variable and one region, the function plots the time-series
+# for each combination of gcm / rcm 
 plot_files <- function(var, gcm, rcm, domain){
   files <- mapply(get_files, var = var, gcm = gcm, rcm = rcm, domain = domain)
   list_df <- lapply(files, read_nc1d, varid = var)
@@ -141,9 +160,20 @@ plot_files <- function(var, gcm, rcm, domain){
   legend("topleft", legend = c(paste(gcm, rcm, sep = "/"), "mean"),
          col = c(pal, "black"), lty = 1)
 }
-plot_files("tas", ".*", ".*", domains[1])
-
-params <- cbind(var = "tas", list_rcms, domain = "23.625,27.375,61.625,63.375")
-params <- lapply(params, as.character)
-with(params, plot_files(var[1], gcms, rcms, domain[1]))
+with(list_rcms, plot_files("tas", gcms, rcms, domains[1]))
      
+var_domain <- expand.grid(var = c("tas", "pr"), domain = domains, stringsAsFactors = FALSE) 
+# par(mfrow = c(nrow(var_domain), 2))
+pdf(file = "time_series.pdf")
+for(i in 1:nrow(var_domain)){
+  with(list_rcms, plot_files(var_domain[i, ]$var, gcms, rcms, var_domain[i, ]$domain))
+}
+dev.off()
+# Change projection -------------------------------------------------------
+
+library(rgdal)
+str(projInfo("proj"))
+str(projInfo("ellps"))
+str(projInfo("datum"))
+
+# rot_attr <- ncatt_get(nc, "rotated_pole")
