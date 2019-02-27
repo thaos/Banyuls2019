@@ -6,6 +6,10 @@ var="tas"
 echo "******************************************************************* \n"
 echo $gcm $rcm $domain
 
+mkdir -p tmp
+mkdir -p out 
+
+
 nclandsea=$(find CORDEX -name "sftlf_EUR-11_${gcm}*${rcm}*.nc" | head -n 1)
 echo $nclandsea
 sleep 10

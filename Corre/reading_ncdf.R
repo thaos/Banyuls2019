@@ -13,9 +13,9 @@ wrl <- as(wrld_simpl,"SpatialLines")
 # Exercice data -----------------------------------------------------------
 
 list_rcms <- data.frame(
-  gcms = c("MOHC-HadGEM2-ES", "MOHC-HadGEM2-ES", "MPI-M-MPI-ESM-LR"),
+  gcms = c("MOHC-HadGEM2-ES", "MOHC-HadGEM2-ES", "MPI-M-MPI-ESM-LR", "CNRM-CERFACS-CNRM-CM5"),
   #   rcms = c("RACMO22E", "RCA4", "RCA4")
-  rcms = c("RACMO22E", "CCLM4-8-17", "CCLM4-8-17")
+  rcms = c("RACMO22E", "CCLM4-8-17", "CCLM4-8-17", "RACMO22E")
 )
 
 domains <- c(
@@ -109,7 +109,7 @@ polylist <- SpatialPolygons(polylist)
 
 sppolylist <- list("sp.lines", col = "red", lwd = 2, polylist)
 spplot(t.lonlat, scales=list(draw=TRUE), sp.layout=list(l1, sppolylist),
-       col.regions = rainbow(11), cuts = 10,
+       col.regions = rainbow(11), cuts = 10, cex = 0.5,
        main="Mean Max Surface Temp 1991-2000, lon/lat projection")
 
 # Plot time-series of each region ---------------------------------------
@@ -145,7 +145,6 @@ read_nc1d <- function(ncfile, varid){
 }
 
 # exeample of readind the tas variable
-files <- mapply(get_files, var = var, gcm = gcm, rcm = rcm, domain = domain)
 tas_df <- read_nc1d(ncfile, "tas")
 plot(
   tas_df$year, tas_df$tas, type = "l",
@@ -154,15 +153,55 @@ plot(
   and domain Finland (23.625,27.375,61.625,63.375)"
 )
 
+prep_df <- function(var, gcm, rcm, domain){
+  files <- mapply(get_files, var = var, gcm = gcm, rcm = rcm, domain = domain)
+  list_df <- lapply(files, read_nc1d, varid = var)
+  for(i in seq_along(list_df)){
+    if(i == 1){
+      merged <- list_df[[i]]
+    } else{
+      merged <- merge.data.frame(merged, list_df[[i]], by = "year")
+    }
+  }
+  print(str(merged))
+  names(merged) <- c("year", paste(gcm, rcm, sep = "_"))
+  return(merged)
+}
+
+
+
+
+# Prep data files for Guillaume and Benoit 
+if(!dir.exists("TPdata") dir.create("TPdata")
+
+
+var_domain <- expand.grid(var = c("tas", "pr"), domain = domains, stringsAsFactors = FALSE) 
+for(i in 1:nrow(var_domain)){
+  with(
+    list_rcms,
+    { 
+      file = paste0("TPdata/", var_domain[i, ]$var, "_", var_domain[i, ]$domain, ".txt")
+      print(file)
+      write.table(
+        prep_df(var_domain[i, ]$var, gcms, rcms, var_domain[i, ]$domain),
+        file = file, row.names = FALSE 
+      )
+    }
+  )
+}
 
 # For one variable and one region, the function plots the time-series
 # for each combination of gcm / rcm 
 plot_files <- function(var, gcm, rcm, domain){
-  files <- mapply(get_files, var = var, gcm = gcm, rcm = rcm, domain = domain)
-  list_df <- lapply(files, read_nc1d, varid = var)
-  ylim  <- do.call(range, lapply(list_df, function(x) x[,var]))
-  xlim  <- do.call(range, lapply(list_df, function(x) x[, "year"]))
-  pal <- rainbow(length(list_df))
+  txtfile <- list.files(
+    path = "TPdata",
+    pattern = paste(var, domain, "\\.text", sep = ".*" ),
+    full.names = TRUE
+  )
+  df <- read.table(txtfile, header = TRUE)
+  ylim  <- range(df[, -1])
+  xlim  <- range(df[, 1])
+  pal <- rainbow(length(df) -1)
   for(i in seq_along(list_df)){
     if(i == 1){
       plot(
@@ -184,6 +223,7 @@ plot_files <- function(var, gcm, rcm, domain){
   legend("topleft", legend = c(paste(gcm, rcm, sep = "/"), "mean"),
          col = c(pal, "black"), lty = 1)
 }
+
 with(list_rcms, plot_files("tas", gcms, rcms, domains[1]))
      
 var_domain <- expand.grid(var = c("tas", "pr"), domain = domains, stringsAsFactors = FALSE) 
@@ -193,6 +233,7 @@ for(i in 1:nrow(var_domain)){
   with(list_rcms, plot_files(var_domain[i, ]$var, gcms, rcms, var_domain[i, ]$domain))
 }
 dev.off()
+
 # Change projection -------------------------------------------------------
 
 library(rgdal)
@@ -201,3 +242,12 @@ str(projInfo("ellps"))
 str(projInfo("datum"))
 
 # rot_attr <- ncatt_get(nc, "rotated_pole")
+
+library(sf)
+library(lwgeom)
+library(maptools)
+data(wrld_simpl)
+x = st_transform_proj(st_as_sf(wrld_simpl), "+proj=ob_tran +o_proj=moll +o_lat_p=45 +o_lon_p=-90 +lon_0=-90")
+g = st_graticule()
+gg = st_transform_proj(g, "+proj=ob_tran +o_proj=moll +o_lat_p=45 +o_lon_p=-90 +lon_0=-90")
+plot(x[1], graticule = gg)
