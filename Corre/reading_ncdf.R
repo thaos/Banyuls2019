@@ -14,7 +14,8 @@ wrl <- as(wrld_simpl,"SpatialLines")
 
 list_rcms <- data.frame(
   gcms = c("MOHC-HadGEM2-ES", "MOHC-HadGEM2-ES", "MPI-M-MPI-ESM-LR"),
-  rcms = c("RACMO22E", "RCA4", "RCA4")
+  #   rcms = c("RACMO22E", "RCA4", "RCA4")
+  rcms = c("RACMO22E", "CCLM4-8-17", "CCLM4-8-17")
 )
 
 domains <- c(
@@ -40,10 +41,30 @@ domain_names <- c(
 )
 
 
+# Create merged NetCDF ----------------------------------------------------
+
+lfiles <-  list.files(
+    path = "CORDEX", 
+    pattern = paste( "tas", "MOHC-HadGEM2-ES", "RACMO22E", "\\.nc", sep = ".*" ),
+    recursive = TRUE, full.names = TRUE
+  )
+
+
+sftlf <- list.files(
+  path = "CORDEX", 
+  pattern = paste( "sftlf", "MOHC-HadGEM2-ES", "RACMO22E", "\\.nc", sep = ".*" ),
+  recursive = TRUE, full.names = TRUE
+)[1]
+
+
+system(paste("cdo -O mergetime", paste(lfiles, collapse = " "), "merged.nc", sep = " "))
+system(paste("cdo -O mul merged.nc -setctomiss,0 -gec,1", sftlf, "masked.nc", sep = " "))
+
+
 # Reading NetCDF ---------------------------------------------------------
 
 # check ncdf meta-data in R
-nc <- nc_open("merged.nc")
+nc <- nc_open("masked.nc")
 names(nc$dim)
 names(nc$var)
 
@@ -93,10 +114,11 @@ spplot(t.lonlat, scales=list(draw=TRUE), sp.layout=list(l1, sppolylist),
 
 # Plot time-series of each region ---------------------------------------
 
+
 # Function to retrirve the netcdf file for one variable ,one gcm, one rcm and one domain
 get_files <- function(var, gcm, rcm, domain){
   list.files(
-    path = "./", 
+    path = "out", 
     pattern = paste( var, gcm, rcm, domain, "\\.nc", sep = ".*" )
   )
 }
@@ -122,6 +144,7 @@ read_nc1d <- function(ncfile, varid){
 }
 
 # exeample of readind the tas variable
+files <- mapply(get_files, var = var, gcm = gcm, rcm = rcm, domain = domain)
 tas_df <- read_nc1d(ncfile, "tas")
 plot(
   tas_df$year, tas_df$tas, type = "l",
