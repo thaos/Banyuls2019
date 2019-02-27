@@ -145,7 +145,6 @@ read_nc1d <- function(ncfile, varid){
 }
 
 # exeample of readind the tas variable
-files <- mapply(get_files, var = var, gcm = gcm, rcm = rcm, domain = domain)
 tas_df <- read_nc1d(ncfile, "tas")
 plot(
   tas_df$year, tas_df$tas, type = "l",

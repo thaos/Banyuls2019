@@ -1,5 +1,6 @@
 declare -a gcms=(MOHC-HadGEM2-ES MOHC-HadGEM2-ES MPI-M-MPI-ESM-LR)
-declare -a rcms=(RACMO22E RCA4 RCA4) 
+#declare -a rcms=(RACMO22E RCA4 RCA4) 
+declare -a rcms=(RACMO22E CCLM4-8-17 CCLM4-8-17) 
 
 domains="23.625,27.375,61.625,63.375
 7.375,11.125,61.125,62.875
