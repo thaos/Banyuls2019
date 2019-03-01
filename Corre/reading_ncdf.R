@@ -195,29 +195,27 @@ for(i in 1:nrow(var_domain)){
 plot_files <- function(var, gcm, rcm, domain){
   txtfile <- list.files(
     path = "TPdata",
-    pattern = paste(var, domain, "\\.text", sep = ".*" ),
+    pattern = paste(var, domain, "\\.txt", sep = ".*" ),
     full.names = TRUE
   )
+  print(txtfile)
   df <- read.table(txtfile, header = TRUE)
   ylim  <- range(df[, -1])
   xlim  <- range(df[, 1])
   pal <- rainbow(length(df) -1)
-  for(i in seq_along(list_df)){
+  for(i in 1:(length(df) -1)){
     if(i == 1){
       plot(
-        list_df[[i]], xlim = xlim, ylim = ylim, col = pal[i],
+        df[, c(1, i + 1)], xlim = xlim, ylim = ylim, col = pal[i],
         type = "l", main = paste("var:", var, ", domain:", domain)
       )
-      merged <- list_df[[i]]
     } else{
-      lines(list_df[[i]], col = pal[i]) 
-      merged <- merge.data.frame(merged, list_df[[i]], by = "year")
+      lines(df[, c(1, i + 1)], col = pal[i]) 
     }
   }
-  print(str(merged))
   lines(
-    merged$year,
-    apply(as.matrix(merged[, -1]), 1, mean, na.rm = TRUE),
+    df$year,
+    apply(as.matrix(df[, -1]), 1, mean, na.rm = TRUE),
     lwd = 2
   )
   legend("topleft", legend = c(paste(gcm, rcm, sep = "/"), "mean"),
@@ -243,11 +241,97 @@ str(projInfo("datum"))
 
 # rot_attr <- ncatt_get(nc, "rotated_pole")
 
+library(ncdf4)
 library(sf)
 library(lwgeom)
 library(maptools)
-data(wrld_simpl)
-x = st_transform_proj(st_as_sf(wrld_simpl), "+proj=ob_tran +o_proj=moll +o_lat_p=45 +o_lon_p=-90 +lon_0=-90")
-g = st_graticule()
-gg = st_transform_proj(g, "+proj=ob_tran +o_proj=moll +o_lat_p=45 +o_lon_p=-90 +lon_0=-90")
-plot(x[1], graticule = gg)
+library(raster)
+library("rnaturalearth")
+library("rnaturalearthdata")
+library("rgeos")
+
+nc <- nc_open("masked.nc")
+names(nc$dim)
+names(nc$var)
+
+lat <- ncvar_get(nc, "lat")
+lon <- ncvar_get(nc, "lon")
+
+rlat <- ncvar_get(nc, "rlat")
+rlon <- ncvar_get(nc, "rlon") 
+rot.coords <- expand.grid(lon = rlon, lat = rlat)
+
+tas <- ncvar_get(nc, varid = "tas") 
+str(tas) # a 3-d array (lon,lat,time)
+
+nc_close(nc)
+
+europe <- ne_countries(scale = "medium", continent = "europe", returnclass = "sf")
+world <- ne_countries(scale = "medium", returnclass = "sf")
+class(europe)
+
+tas_norot <- data.frame(lon = c(lon), lat = c(lat), tas = c(tas[,,1]))
+tas_norot.sf =  st_as_sf(tas_norot, coords = c('lon', 'lat'), crs = st_crs(europe))
+
+tas_rotated <- cbind(rot.coords, tas = c(tas[,,1]))
+tas_rotated.sf =  st_as_sf(tas_rotated, coords = c('lon', 'lat'))
+
+
+
+# OK!
+plot(tas_norot[, 1:2], col = !is.na(tas_norot$tas))
+points(st_coordinates(europe)[, 1:2], col = "red")
+
+# OK!
+plot(tas_norot[, 1:2], col = !is.na(tas_norot$tas))
+plot(europe[1], add = TRUE)
+
+g = st_graticule(margin = 0.1)
+plot(tas_norot.sf, graticule = g, axes = TRUE, reset = FALSE)
+plot(europe[1], col = NA, add = TRUE)
+
+
+
+library(sf)
+# Linking to GEOS 3.5.1, GDAL 2.2.1, proj.4 4.9.3
+library(lwgeom)
+
+
+# Linking to liblwgeom 2.5.0dev r16016, GEOS 3.5.1, proj.4 4.9.3
+
+# seems OK !
+crs = c("+proj=longlat", "+proj=ob_tran +o_proj=longlat +o_lon_p=0 +o_lat_p=39.25 +lon_0=18 +to_meter=0.01745329")
+(pole = st_point(c(0,90)))
+st_transform_proj(pole, crs)
+
+(newpole = st_point(c(-162, 39.25)))
+st_transform_proj(newpole, crs)
+
+pt1 = st_point(c(lon[2,1], lat[2,1]))
+st_transform_proj(pt1, crs)
+
+g_rot <- st_transform_proj(
+  st_crop(g_rot,
+    xmin = min(rlon), ymin = min(rlat),
+    xmax = max(rlon), ymax = max(rlat)
+  ),
+  crs
+)
+europe_rot <- st_transform_proj(europe, crs)
+world_rot <- st_transform_proj(world, crs)
+tas_rot.sf <- st_transform_proj(tas_norot.sf, crs)
+plot(world_rot[1], graticule = g_rot, reset = FALSE)
+
+plot(tas_rot.sf, axes = TRUE, reset = FALSE)
+plot(tas_rotated.sf, axes = TRUE, reset = FALSE)
+plot(
+  st_crop(europe_rot[1],
+    xmin = min(rlon), ymin = min(rlat),
+    xmax = max(rlon), ymax = max(rlat)
+  ),
+  col = NA, add = TRUE, reset = FALSE
+)
+plot(
+  lty = 2, col = "black", add = TRUE
+)
+
