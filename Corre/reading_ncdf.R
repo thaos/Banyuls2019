@@ -286,7 +286,7 @@ points(st_coordinates(europe)[, 1:2], col = "red")
 plot(tas_norot[, 1:2], col = !is.na(tas_norot$tas))
 plot(europe[1], add = TRUE)
 
-g = st_graticule(margin = 0.1)
+g = st_graticule(ndiscr = 360)
 plot(tas_norot.sf, graticule = g, axes = TRUE, reset = FALSE)
 plot(europe[1], col = NA, add = TRUE)
 
@@ -311,9 +311,9 @@ pt1 = st_point(c(lon[2,1], lat[2,1]))
 st_transform_proj(pt1, crs)
 
 g_rot <- st_transform_proj(
-  st_crop(g_rot,
-    xmin = min(rlon), ymin = min(rlat),
-    xmax = max(rlon), ymax = max(rlat)
+  st_crop(g,
+    xmin = min(lon), ymin = min(lat),
+    xmax = max(lon), ymax = max(lat)
   ),
   crs
 )
@@ -322,8 +322,8 @@ world_rot <- st_transform_proj(world, crs)
 tas_rot.sf <- st_transform_proj(tas_norot.sf, crs)
 plot(world_rot[1], graticule = g_rot, reset = FALSE)
 
-plot(tas_rot.sf, axes = TRUE, reset = FALSE)
-plot(tas_rotated.sf, axes = TRUE, reset = FALSE)
+plot(tas_rot.sf, graticule = g_rot, axes = TRUE, reset = FALSE)
+plot(tas_rotated.sf, reset = FALSE)
 plot(
   st_crop(europe_rot[1],
     xmin = min(rlon), ymin = min(rlat),
@@ -332,6 +332,40 @@ plot(
   col = NA, add = TRUE, reset = FALSE
 )
 plot(
-  lty = 2, col = "black", add = TRUE
+  st_crop(g_rot,
+    xmin = min(rlon), ymin = min(rlat),
+    xmax = max(rlon), ymax = max(rlat)
+  ),
+  lty = 2, col = "black", add = TRUE,
 )
 
+# plot using raster --------------------------------------------------------
+library(raster)
+library(rgdal)
+tas_rotated_raster <- raster(
+  tas[,,1], crs = crs[2],
+  xmn = min(rlon), xmx = max(rlon),
+  ymn = min(rlat), ymx = max(rlat)
+)
+plot(tas_rotated_raster)
+
+# create spatial points data frame
+tas_rotated_gridded <- tas_rotated
+coordinates(tas_rotated_gridded) <- ~ lon + lat
+# coerce to SpatialPixelsDataFrame
+gridded(tas_rotated_gridded) <- TRUE
+crs(tas_rotated_gridded) <- crs[2]
+# coerce to raster
+rasterDF <- raster(tas_rotated_gridded)
+crs(rasterDF) <- crs[2]
+rasterDF
+plot(rasterDF, axes = FALSE)
+
+
+
+world <- ne_countries(scale = "medium", returnclass = "sp")
+world_rot <- spTransform(world, crs[2])
+
+plot(tas_rotated_gridded, axes = FALSE)
+llgridlines(tas_rotated_gridded, xlim = range(rlon))
+plot(crop(world_rot, extent(min(rlon), max(rlon), min(rlat), max(rlat))), add = TRUE)
