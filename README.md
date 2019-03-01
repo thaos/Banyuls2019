@@ -51,4 +51,4 @@ this variable. For instance in bash it is done with the following command :
 export ESGF_PWD="YourPassword"
 ```
 The files to be download are defined with the urls variable.
-You can add new files to be downloaded by appending the urls variables with an url used for [the ESGF Search RESTful API](https://earthsystemcog.org/projects/cog/esgf_search_restful_api).
+You can add new files to be downloaded by appending the urls variables with an url used for [the wget ESGF Search RESTful API](https://earthsystemcog.org/projects/cog/esgf_search_restful_api).
