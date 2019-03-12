@@ -1,5 +1,5 @@
 gcm="MOHC-HadGEM2-ES"
-rcm="RCA4"
+rcm="RACMO22E"
 var="tas"
 
 
