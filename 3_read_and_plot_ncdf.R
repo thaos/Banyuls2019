@@ -166,16 +166,10 @@ ncfile <- get_files("tas", "MOHC-HadGEM2-ES", "RACMO22E", "23.625,27.375,61.625,
 # Function to read the varid variable from a netcdf file.
 # Output is a data.frame with one column for the year and one column for the averaged variable over the regions
 read_nc1d <- function(ncfile, varid){
-  #source("https://raw.githubusercontent.com/arakelian-ara/Rstat/master/time_handler.R")
   nc <- nc_open(ncfile)
   var <- ncvar_get(nc, varid)
+  year <- ncvar_get(nc, "time") %/% 10000
   nc_close(nc)
-  #   debug(nc_time_handler)
-  #   th <- as.data.frame(nc_time_handler(ncfile))
-  #   for windows users
-  #   year <- system(paste("C:/cygwin64/bin/cdo.exe  showyear", ncfile), intern = TRUE)
-  year <- system(paste("cdo showyear", ncfile), intern = TRUE)
-  year <- unlist(strsplit(year, "\\s+")) [-1]
   df <- data.frame(as.numeric(year), var)
   names(df) <- c("year", varid)
   return(df)
