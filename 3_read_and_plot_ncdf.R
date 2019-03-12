@@ -193,6 +193,8 @@ read_nc1d <- function(ncfile, varid){
   nc_close(nc)
   #   debug(nc_time_handler)
   #   th <- as.data.frame(nc_time_handler(ncfile))
+  #   for windows users
+  #   year <- system(paste("C:/cygwin64/bin/cdo.exe  showyear", ncfile), intern = TRUE)
   year <- system(paste("cdo showyear", ncfile), intern = TRUE)
   year <- unlist(strsplit(year, "\\s+")) [-1]
   df <- data.frame(as.numeric(year), var)
