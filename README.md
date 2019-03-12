@@ -34,7 +34,7 @@ You may also need to have a look on how to use CDO from Cygwin ([some instructio
 Scripts need to be run in order:
 - 0_download_esgf_data.sh is used to retrieved data from ESGF portal.
 - 1_CDO_ex1_allrcms.sh is used to prepare the downloaded data using CDO commands.
-- 2_CDO_ex2.sh is optional and contains the solution of additional CDO exercices.
+- 2_CDO_ex2.sh is contains the solution of additional CDO exercices.
 - 3_read_and_plot_ncdf.R shows how to import the prepared data into R and how to plot them.
 
 #### Remarks:
