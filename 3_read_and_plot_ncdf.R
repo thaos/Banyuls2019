@@ -44,7 +44,7 @@ domain_names <- c(
 # Reading NetCDF ---------------------------------------------------------
 
 # check ncdf meta-data in R
-nc <- nc_open("ex2out/masked.nc")
+nc <- nc_open("ex2out/clim.nc")
 names(nc$dim)
 names(nc$var)
 
@@ -69,15 +69,15 @@ nc_close(nc)
 # Plot mean surface temp and regions of interest --------------------------
 
 # applies function mean to margins 1 and 2 of the array
-tas_mean <- apply(tas, MARGIN = c(1,2), FUN = mean)
 
-tas_lonlat <- data.frame(lon = as.vector(lon), lat = as.vector(lat), tas = as.vector(tas_mean))
-tas_rot <- cbind(rot.coords, tas = as.vector(tas_mean))
+
+tas_lonlat <- data.frame(lon = as.vector(lon), lat = as.vector(lat), tas = as.vector(tas))
+tas_rot <- cbind(rot.coords, tas = as.vector(tas))
 
 
 # with base package
 ncolor  <- 30
-cuts <- cut(tas_mean,breaks = ncolor)
+cuts <- cut(tas,breaks = ncolor)
 with(tas_lonlat, plot(lon, lat, col = rainbow(ncolor)[cuts], pch = 20, cex =  (sin(lat * pi / 180))^2))
 lines(maps::map("world", fill = FALSE, plot = FALSE))
 legend("topleft", legend = levels(cuts), col = rainbow(ncolor), pch = 20, bg = "white")
@@ -138,10 +138,6 @@ proj4string(tas_grid) <- CRS(crs)
 world_rot <- spTransform(wrld_simpl, crs)
 polylist_rot <- spTransform(polylist, crs)
 
-# plot(
-#   tas_grid, axes = FALSE, col = rainbow(30),
-#   breaks = seq(min(tas_mean, na.rm = TRUE), max(tas_mean, na.rm = TRUE), length.out = 31)
-# )
 plot(tas_grid, axes = FALSE)
 llgridlines(tas_grid, xlim = range(rlon))
 plot(world_rot, add = TRUE)
@@ -150,7 +146,7 @@ plot(polylist_rot, borde = "red", lwd = 2, add = TRUE)
 # Plot time-series of each region ---------------------------------------
 
 
-# Function to retrirve the netcdf file for one variable ,one gcm, one rcm and one domain
+# Function to retrieve the netcdf file for one variable ,one gcm, one rcm and one domain
 get_files <- function(var, gcm, rcm, domain){
   list.files(
     path = "out", 
@@ -175,7 +171,7 @@ read_nc1d <- function(ncfile, varid){
   return(df)
 }
 
-# exeample of readind the tas variable
+# exeample of reading the tas variable
 tas_df <- read_nc1d(ncfile, "tas")
 plot(
   tas_df$year, tas_df$tas, type = "l",
