@@ -20,6 +20,7 @@ R packages
 
  - sp
  - rgdal
+ - maps
  - maptools
  - ncdf4
  
