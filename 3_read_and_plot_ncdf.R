@@ -41,29 +41,10 @@ domain_names <- c(
   "Greece", "Galicia", "Andalucia", "Tunisia"
 )
 
-# Create merged NetCDF ----------------------------------------------------
-
-lfiles <-  list.files(
-    path = "CORDEX",
-    pattern = paste( "tas", "MOHC-HadGEM2-ES", "RACMO22E", "\\.nc", sep = ".*" ),
-    recursive = TRUE, full.names = TRUE
-  )
-
-
-sftlf <- list.files(
-  path = "CORDEX",
-  pattern = paste( "sftlf", "MOHC-HadGEM2-ES", "RACMO22E", "\\.nc", sep = ".*" ),
-  recursive = TRUE, full.names = TRUE
-)[1]
-
-
-system(paste("cdo -O mergetime", paste(lfiles, collapse = " "), "merged.nc", sep = " "))
-system(paste("cdo -O mul merged.nc -setctomiss,0 -gec,1", sftlf, "masked.nc", sep = " "))
-
 # Reading NetCDF ---------------------------------------------------------
 
 # check ncdf meta-data in R
-nc <- nc_open("masked.nc")
+nc <- nc_open("ex2out/masked.nc")
 names(nc$dim)
 names(nc$var)
 

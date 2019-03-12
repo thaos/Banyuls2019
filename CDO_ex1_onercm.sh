@@ -38,7 +38,7 @@ for f in $ncfiles; do
 done
 
 rm -f tmp/merged.nc
-cdo mergetime $outlist tmp/merged.nc
+cdo -a mergetime $outlist tmp/merged.nc
 cdo seldate,1970-01-01,2100-12-31 -yearmean tmp/merged.nc out/${var}_EUR-11_${gcm}_r1i1p1_${rcm}_dom_${domain}.nc
 
 # for precipitation replace yearmean by yearsum
@@ -64,5 +64,5 @@ for f in $ncfiles; do
 done
 
 rm -f tmp/merged.nc
-cdo mergetime $outlist tmp/merged.nc 
+cdo -a mergetime $outlist tmp/merged.nc 
 cdo seldate,1970-01-01,2100-12-31 -yearsum tmp/merged.nc out/${var}_EUR-11_${gcm}_r1i1p1_${rcm}_dom_${domain}.nc
