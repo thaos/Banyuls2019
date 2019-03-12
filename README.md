@@ -12,7 +12,7 @@ Softwares
  - curl
  - R
  - netCDF4
- - CDO (don't forget to add it to your PATH)
+ - CDO
  - GDAL
  - ncview (optional)
  
