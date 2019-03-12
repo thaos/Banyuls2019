@@ -9,6 +9,7 @@ Authors: Lola Corre, Soulivanh Thao
 Softwares
  - bash
  - wget 
+ - curl
  - R
  - netCDF4
  - CDO
