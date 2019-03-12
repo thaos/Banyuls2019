@@ -29,7 +29,7 @@ EURO-CORDEX data are retrieved from  the ESGF portable using bash scripts and th
 
 You need to install either Windows Subsystem for Linux (WSL for Windows 10) or a software like Cygwin to do so (c.f. e.g. [stackoverflow](https://stackoverflow.com/questions/15736898/running-a-shell-script-through-cygwin-on-windows)).
 
-You may also need to have a look on how to use CDO from Cygwin ([some instructions here](https://www.isimip.org/protocol/isimip2b-files/cdo-help/)).
+You may also need to have a look on how to use CDO with Cygwin ([some instructions here](https://www.isimip.org/protocol/isimip2b-files/cdo-help/)).
 
 ### Order of the Scripts
 Scripts need to be run in order:
