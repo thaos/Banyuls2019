@@ -6,6 +6,11 @@ Authors: Lola Corre, Soulivanh Thao
 
 ### Requirements
 
+ESGF
+ - have an account on one of the esgf node (e.g. https://esgf-node.ipsl.upmc.fr/projects/esgf-ipsl/)
+ - subscribe to CORDEX Research to have access to CORDEX data.
+
+
 Softwares
  - bash
  - wget 
