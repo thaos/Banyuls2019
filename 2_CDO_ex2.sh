@@ -12,7 +12,7 @@ ncfiles=$(find CORDEX -name "${var}_EUR-11_${gcm}_*_r1i1p1_*${rcm}*.nc")
 cdo -O mergetime $ncfiles $outdir/merged.nc
 
 sftlf=$(find CORDEX -name "sftlf_EUR-11_${gcm}_historical_*${rcm}*.nc")
-cdo -O mul $outdir/merged -setctomiss,0 -gec,1 $sftlf  $ncfile
+cdo -O mul $outdir/merged.nc -setctomiss,0 -gec,1 $sftlf  $ncfile
 
 # moyennes saisonnières sur JJA
 seas_x="JJA"
