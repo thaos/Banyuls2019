@@ -6,6 +6,8 @@
 library(ncdf4)
 library(maptools)
 library(rgdal)
+library(maps)
+library(sp)
 
 data(wrld_simpl) # loads the world map dataset
 wrl <- as(wrld_simpl,"SpatialLines")
