@@ -17,7 +17,7 @@ Softwares
  - curl
  - R
  - netCDF4
- - CDO
+ - CDO (1.9.3)
  - GDAL
  - ncview (optional)
  
