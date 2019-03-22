@@ -12,6 +12,19 @@ mkdir -p out
 
 nclandsea=$(find CORDEX -name "sftlf_EUR-11_${gcm}*${rcm}*.nc" | head -n 1)
 echo $nclandsea
+if [ -z "$nclandsea" ]
+then 
+  echo "Error! no sftlf file found." 1>&2
+  exit 64
+fi
+
+ncarea=$(find CORDEX -name "areacella_EUR-11_${gcm}*${rcm}*.nc" | head -n 1)
+echo $ncarea
+if [ -z "$ncarea" ]
+then 
+  echo "Warning! no aeracella file found." 1>&2
+fi
+
 sleep 10
 cdo -f nc -setctomiss,0 -gec,50 $nclandsea tmp/landseamask.nc
 
@@ -31,7 +44,8 @@ for f in $ncfiles; do
   echo ncout: $ncout
   cdo mul ${f} tmp/landseamask.nc tmp/tmp0.nc
   cdo sellonlatbox,${domain} tmp/tmp0.nc tmp/tmp1.nc
-  cdo fldmean tmp/tmp1.nc $ncout
+  cdo sellonlatbox,${domain} $ncarea tmp/area.nc
+  cdo fldmean -setgridarea,tmp/area.nc tmp/tmp1.nc $ncout
   # ${ncout##*/} to get basename
   # cdo setreftime,0000-01-01,00:00 tmp/tmp1.nc tmp/tmp2.nc
   outlist="$outlist $ncout"
@@ -57,7 +71,8 @@ for f in $ncfiles; do
   echo ncout: $ncout
   cdo mul ${f} tmp/landseamask.nc tmp/tmp0.nc
   cdo sellonlatbox,${domain} tmp/tmp0.nc tmp/tmp1.nc
-  cdo fldmean tmp/tmp1.nc $ncout
+  cdo sellonlatbox,${domain} $ncarea tmp/area.nc
+  cdo fldmean -setgridarea,tmp/area.nc tmp/tmp1.nc $ncout
   # ${ncout##*/} to get basename
   # cdo setreftime,0000-01-01,00:00 tmp/tmp1.nc tmp/tmp2.nc
   outlist="$outlist $ncout"
