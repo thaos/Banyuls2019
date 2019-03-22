@@ -13,7 +13,7 @@ mkdir -p out
 nclandsea=$(find CORDEX -name "sftlf_EUR-11_${gcm}*${rcm}*.nc" | head -n 1)
 echo $nclandsea
 sleep 10
-cdo -f nc -setctomiss,0 -gec,1 $nclandsea tmp/landseamask.nc
+cdo -f nc -setctomiss,0 -gec,50 $nclandsea tmp/landseamask.nc
 
 
 
