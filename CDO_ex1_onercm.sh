@@ -34,21 +34,27 @@ ncfiles=$(find CORDEX -name "${var}_EUR-11_${gcm}_*_r1i1p1_*${rcm}*.nc")
 ncfiles=$(echo $ncfiles | tr " " "\n" | sort | tr "\n" " ")
 echo $ncfiles
 
-
-
 outlist=""
 for f in $ncfiles; do
   echo $f
   basename=${f##*/}
   ncout="tmp/$basename"
   echo ncout: $ncout
-  cdo mul ${f} tmp/landseamask.nc tmp/tmp0.nc
-  cdo sellonlatbox,${domain} tmp/tmp0.nc tmp/tmp1.nc
-  cdo sellonlatbox,${domain} $ncarea tmp/area.nc
-  cdo fldmean -setgridarea,tmp/area.nc tmp/tmp1.nc $ncout
+  cdo selname,${var} ${f} tmp/tmp0.nc
+  cdo mul tmp/tmp0.nc tmp/landseamask.nc tmp/tmp1.nc
+  cdo sellonlatbox,${domain} tmp/tmp1.nc tmp/tmp2.nc
+  #if [ -z "$ncarea" ]
+  #then 
+    cdo fldmean tmp/tmp2.nc $ncout
+  #else
+    #cdo sellonlatbox,${domain} $ncarea tmp/area.nc
+    #cdo fldmean -setgridarea,tmp/area.nc tmp/tmp1.nc $ncout
+  #fi
   # ${ncout##*/} to get basename
   # cdo setreftime,0000-01-01,00:00 tmp/tmp1.nc tmp/tmp2.nc
   outlist="$outlist $ncout"
+  rm -rf tmp/tmp*.nc 
+  #rm -rf tmp/area.nc
 done
 
 rm -f tmp/merged.nc
@@ -62,20 +68,18 @@ ncfiles=$(find CORDEX -name "${var}_EUR-11_${gcm}_*_r1i1p1_*${rcm}*.nc")
 ncfiles=$(echo $ncfiles | tr " " "\n" | sort | tr "\n" " ")
 echo $ncfiles
 
-domaine="-10,30,35,70"
 outlist=""
 for f in $ncfiles; do
   echo $f
   basename=${f##*/}
   ncout="tmp/$basename"
   echo ncout: $ncout
-  cdo mul ${f} tmp/landseamask.nc tmp/tmp0.nc
-  cdo sellonlatbox,${domain} tmp/tmp0.nc tmp/tmp1.nc
-  cdo sellonlatbox,${domain} $ncarea tmp/area.nc
-  cdo fldmean -setgridarea,tmp/area.nc tmp/tmp1.nc $ncout
-  # ${ncout##*/} to get basename
-  # cdo setreftime,0000-01-01,00:00 tmp/tmp1.nc tmp/tmp2.nc
+  cdo selname,${var} ${f} tmp/tmp0.nc
+  cdo mul tmp/tmp0.nc tmp/landseamask.nc tmp/tmp1.nc
+  cdo sellonlatbox,${domain} tmp/tmp1.nc tmp/tmp2.nc
+  cdo fldmean tmp/tmp2.nc $ncout
   outlist="$outlist $ncout"
+  rm -rf tmp/tmp*.nc 
 done
 
 rm -f tmp/merged.nc

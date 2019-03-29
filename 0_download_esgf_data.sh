@@ -1,4 +1,4 @@
-openid=https://esgf-node.ipsl.upmc.fr/esgf-idp/openid/sthao
+openid=https://esgf-node.ipsl.upmc.fr/esgf-idp/openid/lola.corre@meteo.fr
 
 #url='https://esg-dn1.nsc.liu.se/esg-search/wget/?distrib=false&dataset_id=cordex.output.EUR-11.SMHI.MOHC-HadGEM2-ES.rcp85.r1i1p1.RCA4.v1.mon.tas.v20131026|esg-dn1.nsc.liu.se&dataset_id=cordex.output.EUR-11.SMHI.MOHC-HadGEM2-ES.rcp85.r1i1p1.RCA4.v1.mon.pr.v20131026|esg-dn1.nsc.liu.se&dataset_id=cordex.output.EUR-11.SMHI.MOHC-HadGEM2-ES.historical.r1i1p1.RCA4.v1.mon.tas.v20131026|esg-dn1.nsc.liu.se&dataset_id=cordex.output.EUR-11.SMHI.MOHC-HadGEM2-ES.historical.r1i1p1.RCA4.v1.mon.pr.v20131026|esg-dn1.nsc.liu.se&download_structure=project,experiment,driving_model,rcm_name,variable'
 
