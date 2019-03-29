@@ -41,7 +41,8 @@ Scripts need to be run in order:
 - 0_download_esgf_data.sh is used to retrieved data from ESGF portal.
 - 1_CDO_ex1_allrcms.sh is used to prepare the downloaded data using CDO commands.
 - 2_CDO_ex2.sh contains the solution of additional CDO exercices.
-- 3_read_and_plot_ncdf.R shows how to import the prepared data into R and how to plot them. It uses NetCDF outputs from 1_CDO_ex1_allrcms.sh and 2_CDO_ex2.sh.
+- 3.1_read_and_map_ncdf_lcc.R, 3.2_read_and_map_ncdf_rot.R and 3.3_plot_time_series.R show how to import the prepared data into R and how to plot them. It uses NetCDF outputs from 1_CDO_ex1_allrcms.sh and 2_CDO_ex2.sh.
+- 4_prepare_TPdata.R prepares text files for the practical  Incertitude des ensembles  by Benoît Hingray(IGE) and Guillaume Evin (IRSTEA)
 
 #### Remarks:
 All the scripts outputs are written in the current directory and all the inputs files are read from the current directory as well.
